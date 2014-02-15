@@ -10,6 +10,7 @@ var Game = cc.Layer.extend({
     groundSize: null,
     groundArray: null,
     soapArray:null,
+    soapScoreSprite:null,
     soapScoreLabel:null,
     birdbody: null,
     tubeArray: null,
@@ -72,8 +73,8 @@ var Game = cc.Layer.extend({
             s_tutorial,
             function ()
             {
-                startItem.removeFromParentAndCleanup(true);
                 this.startGame();
+                startItem.removeFromParent(true);
             },
             this
         );
@@ -222,7 +223,7 @@ var Game = cc.Layer.extend({
             }
             else
             {
-                shape.setElasticity(1.0);
+                shape.setElasticity(0.0);
             }
 
             shape.setFriction(1);
@@ -240,7 +241,7 @@ var Game = cc.Layer.extend({
         birdbody = body;
         space.addBody( body );
         var shape = new cp.BoxShape( body, 48, 108);
-        shape.setElasticity( 0.5 );
+        shape.setElasticity( 0.0 );
         shape.setFriction( 0.5 );
         space.addShape( shape );
 
@@ -261,26 +262,32 @@ var Game = cc.Layer.extend({
         for(var i =0;i<tubeArray.length;i++)
         {
             var element = tubeArray[i];
-
-
             if(cc.rectIntersectsRect(birdBox,element.getBoundingBox()))
             {
-                //alert("Game Over!");
-
-                //GameOver();
+                GameOver();
             }
         }
         for(var i =0;i<soapArray.length;i++)
         {
             var element = soapArray[i];
-
-
+                           
             if(cc.rectIntersectsRect(birdBox,element.getBoundingBox()))
             {
+                /*
+                var ｍoveToA = cc.MoveTo.create(1.0, cc.p(screenSize.width / 10-element.getBoundingBox().x, screenSize.height / 1.1-element.getBoundingBox().y));
+                           
+                var Action = cc.Sequence.create
+                (
+                    ｍoveToA,
+                    cc.CallFunc.create(this.getSoapCallback, element)
+                );
+                element.runAction(Action);
+                  */
                 soapArray.shift();
-                element.removeFromParentAndCleanup(true);
+                this.getSoapCallback(element);
                 soapScoreNum++;
                 soapScoreLabel.setString(soapScoreNum.toString());
+                
             }
         }
 
@@ -305,12 +312,15 @@ var Game = cc.Layer.extend({
         soapSprite.removeFromParent(true);
         soapArray.shift();
     },
+    getSoapCallback:function(element)
+    {
+       element.removeFromParent(true);
+    },
     onTouchesBegan:function (touches, event) {
         this.isMouseDown = true;
-        cc.log("isGameOver="+isGameOver);
         if(isGameOver)
         return;
-        //var r = cp.v.sub(centroid, body.getPos());
+                           
         birdbody.applyImpulse(cp.v(0,400), cp.v(0,0));
     },
     onTouchesMoved:function (touches, event) {
