@@ -1,6 +1,7 @@
 var isGameOver = false;
 var self = null;
 var soapScoreNum = 0;
+var flashSprite = null;
 var Game = cc.Layer.extend({
     isMouseDown: false,
     world: null,
@@ -264,6 +265,7 @@ var Game = cc.Layer.extend({
             var element = tubeArray[i];
             if(cc.rectIntersectsRect(birdBox,element.getBoundingBox()))
             {
+
                 GameOver();
             }
         }
@@ -353,6 +355,12 @@ var GameOver = function()
 
     cc.AudioEngine.getInstance().playEffect("res/sfx_hit.mp3");
 
+    flashSprite = cc.Sprite.create(s_flash);
+    flashSprite.setPosition(screenSize.width / 2, screenSize.height / 2);
+    self.addChild(flashSprite, 1000);
+    self.schedule(flash,0.1,1,0);
+
+
     self.unschedule(self.createTube);
     self.unschedule(self.changeSpriteFrame);
 
@@ -417,8 +425,8 @@ var GameOver = function()
 
     var replayItem = cc.MenuItemImage.create
     (
-        s_replayBtn,
-        s_replayBtn,
+        s_replayBtn1,
+        s_replayBtn2,
         function ()
         {
              var nextScene = cc.Scene.create();
@@ -448,7 +456,10 @@ var GameOver = function()
     self.addChild(menu, 1000);
 }
 
-
+var flash = function(dt)
+{
+    flashSprite.removeFromParent(true);
+}
 var GameScene = cc.Scene.extend({
     onEnter:function () {
         this._super();

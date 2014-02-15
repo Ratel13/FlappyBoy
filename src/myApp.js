@@ -56,8 +56,8 @@ var Helloworld = cc.Layer.extend({
     */
         var startItem = cc.MenuItemImage.create
         (
-            s_startBtn,
-            s_startBtn,
+            s_startBtn1,
+            s_startBtn2,
             function ()
             {
                 var nextScene = cc.Scene.create();
