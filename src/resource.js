@@ -14,7 +14,7 @@ var s_gameOver = "res/gameOver.png";
 var s_replayBtn1 = "res/replayBtn1.png";
 var s_replayBtn2 = "res/replayBtn2.png";
 var s_ranking = "res/ranking.png";
-
+var s_flash = "res/flashBg.png";
 //var s_ = "res/.png";
 
 var g_resources = [
@@ -34,7 +34,9 @@ var g_resources = [
     {src:s_gameOver},
     {src:s_replayBtn1},
     {src:s_replayBtn2},
-    {src:s_ranking}
+    {src:s_ranking},
+    {src:s_flash}
+                   
     //{src:},
 
     //plist
