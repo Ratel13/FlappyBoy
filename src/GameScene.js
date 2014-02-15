@@ -23,6 +23,9 @@ var Game = cc.Layer.extend({
         screenSize = cc.Director.getInstance().getWinSize();
         this.setTouchEnabled(true);
 
+        isGameOver = false;
+        soapScoreNum = 0;
+
         lazyLayer = cc.Layer.create();
         this.addChild(lazyLayer);
 
@@ -250,22 +253,21 @@ var Game = cc.Layer.extend({
     {
         space.step( delta );
 
-         birdBox = cc.rect(birdSprite.getPosition().x-birdSize.width/2,birdSprite.getPosition().y-birdSize.height/2,birdSize.width,birdSize.height);
+        if(isGameOver)
+        return;
+
+        var reduceRect = 5;
+         birdBox = cc.rect(birdSprite.getPosition().x-birdSize.width/2+reduceRect,birdSprite.getPosition().y-birdSize.height/2+reduceRect,birdSize.width-reduceRect,birdSize.height-reduceRect);
         for(var i =0;i<tubeArray.length;i++)
         {
             var element = tubeArray[i];
 
 
-            if(cc.rectIntersectsRect(birdBox,element.getBoundingBox()) && !isGameOver)
+            if(cc.rectIntersectsRect(birdBox,element.getBoundingBox()))
             {
                 //alert("Game Over!");
-                /*
-                var nextScene = cc.Scene.create();
-                var nextLayer = new GameScene;
-                nextScene.addChild(nextLayer);
-                cc.Director.getInstance().replaceScene(cc.TransitionSlideInT.create(0.0, nextScene));
-                */
-               // GameOver();
+
+                //GameOver();
             }
         }
         for(var i =0;i<soapArray.length;i++)
@@ -273,7 +275,7 @@ var Game = cc.Layer.extend({
             var element = soapArray[i];
 
 
-            if(cc.rectIntersectsRect(birdBox,element.getBoundingBox()) && !isGameOver)
+            if(cc.rectIntersectsRect(birdBox,element.getBoundingBox()))
             {
                 soapArray.shift();
                 element.removeFromParentAndCleanup(true);
@@ -284,7 +286,7 @@ var Game = cc.Layer.extend({
 
         if(birdSprite.getPosition().y-birdSize.height/2<groundSize.height)
         {
-          //  GameOver();
+            GameOver();
         }
 
     },
@@ -305,6 +307,7 @@ var Game = cc.Layer.extend({
     },
     onTouchesBegan:function (touches, event) {
         this.isMouseDown = true;
+        cc.log("isGameOver="+isGameOver);
         if(isGameOver)
         return;
         //var r = cp.v.sub(centroid, body.getPos());
@@ -352,8 +355,84 @@ var GameOver = function()
     {
         soapArray[i].stopAllActions();
     }
-    var shape = walls[0];
-    shape.setElasticity(2.0);
+    //var shape = walls[0];
+    //shape.setElasticity(2.0);
+
+
+
+
+
+    var bestScore = sys.localStorage.getItem('bestScore');
+    var secondScore = sys.localStorage.getItem('secondScore');
+    var medalSprite;
+    if(soapScoreNum>bestScore-1)
+    {
+        sys.localStorage.setItem('bestScore',soapScoreNum);
+
+        medalSprite = cc.Sprite.create("res/goldMedal.png");
+    }
+    else if(soapScoreNum>secondScore-1 && soapScoreNum<bestScore)
+    {
+        sys.localStorage.setItem('secondScore',soapScoreNum);
+
+        medalSprite = cc.Sprite.create("res/silverMedal.png");
+    }
+    else
+    {
+        medalSprite = cc.Sprite.create("res/bronzeMedal.png");
+    }
+    medalSprite.setPosition(screenSize.width / 3, screenSize.height / 2.4);
+    self.addChild(medalSprite,10000);
+
+
+    var boardSprite = cc.Sprite.create(s_scoreBoard);
+    boardSprite.setPosition(screenSize.width / 2, screenSize.height / 2);
+    self.addChild(boardSprite, 5);
+
+    var gameOverSprite = cc.Sprite.create(s_gameOver);
+    gameOverSprite.setPosition(screenSize.width / 2, screenSize.height / 1.2);
+    self.addChild(gameOverSprite, 5);
+
+    var newScoreLabel = cc.LabelTTF.create(soapScoreNum.toString(), "Arial", 30);
+    newScoreLabel.setPosition(screenSize.width / 1.4, screenSize.height / 1.8);
+    self.addChild(newScoreLabel, 5);
+
+    var bestScore = sys.localStorage.getItem('bestScore');
+    var bestScoreLabel = cc.LabelTTF.create(bestScore.toString(), "Arial", 30);
+    bestScoreLabel.setPosition(screenSize.width / 1.4, screenSize.height / 2.8);
+    self.addChild(bestScoreLabel, 5);
+
+    var replayItem = cc.MenuItemImage.create
+    (
+        s_replayBtn,
+        s_replayBtn,
+        function ()
+        {
+             var nextScene = cc.Scene.create();
+             var nextLayer = new GameScene;
+             nextScene.addChild(nextLayer);
+             cc.Director.getInstance().replaceScene(cc.TransitionSlideInT.create(0.0, nextScene));
+        },
+        this
+    );
+    //replayItem.setPosition(boardSprite.getBoundingBox().x , boardSprite.getBoundingBox().y - replayItem.getBoundingBox.height);
+    replayItem.setPosition(boardSprite.getBoundingBox().x+replayItem.getBoundingBox().width/2+20  , boardSprite.getBoundingBox().y-30);
+    var rankingItem = cc.MenuItemImage.create
+    (
+        s_ranking,
+        s_ranking,
+        function ()
+        {
+
+        },
+        this
+    );
+    //rankingItem.setPosition(boardSprite.getBoundingBox().x+boardSprite.getBoundingBox().width/2 , boardSprite.getBoundingBox().y - replayItem.getBoundingBox.height);
+    rankingItem.setPosition(boardSprite.getBoundingBox().x+rankingItem.getBoundingBox().width*2-20 , boardSprite.getBoundingBox().y-30);
+
+    var menu = cc.Menu.create(replayItem,rankingItem);
+    menu.setPosition(0,0);
+    self.addChild(menu, 1000);
 }
 
 

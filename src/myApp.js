@@ -49,8 +49,11 @@ var Helloworld = cc.Layer.extend({
         this.sprite.setPosition(size.width / 2, size.height / 2);
         lazyLayer.addChild(this.sprite, 0);
         this.setTouchEnabled(true);
+/*
+        sys.localStorage.setItem('bestScore',0);
 
-
+        sys.localStorage.setItem('secondScore',0);
+    */
         var startItem = cc.MenuItemImage.create
         (
             s_startBtn,
