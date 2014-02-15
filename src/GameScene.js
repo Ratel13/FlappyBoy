@@ -1,7 +1,6 @@
-var FLUID_DENSITY = 0.00014;
-var FLUID_DRAG = 2.0;
 var isGameOver = false;
 var self = null;
+var soapScoreNum = 0;
 var Game = cc.Layer.extend({
     isMouseDown: false,
     world: null,
@@ -10,13 +9,13 @@ var Game = cc.Layer.extend({
     lazyLayer: null,
     groundSize: null,
     groundArray: null,
+    soapArray:null,
+    soapScoreLabel:null,
     birdbody: null,
     tubeArray: null,
     birdSize: null,
     birdSprite:null,
     birdPicName:null,
-    drawArray: null, /******   tempDraw  code ******/
-    birdDraw: null, /******   tempDraw  code ******/
     space:null,
     init: function () {
         this._super();
@@ -28,10 +27,8 @@ var Game = cc.Layer.extend({
         this.addChild(lazyLayer);
 
         tubeArray = Array();
-        drawArray = Array();
+        soapArray = Array();
         groundArray = Array();
-        /******   tempDraw  code ******/
-
         birdSize = cc.Sprite.create(s_Bird1).getContentSize();
 
         var bgsprite = cc.Sprite.create(s_bg);
@@ -43,36 +40,64 @@ var Game = cc.Layer.extend({
             var groundsprite = cc.Sprite.create(s_Ground);
             groundSize = groundsprite.getContentSize();
             groundsprite.setPosition(screenSize.width / 2 + screenSize.width * i, groundSize.height / 2);
-            lazyLayer.addChild(groundsprite, 0);
+            lazyLayer.addChild(groundsprite, 100);
 
             var ｍoveToA = cc.MoveTo.create(s_groundSpeed * (i + 1), cc.p(-screenSize.width / 2, groundsprite.getPositionY()));
 
             var Action = cc.Sequence.create
-            (
-                ｍoveToA,
-                cc.CallFunc.create(this.groundCallback, groundsprite,this)
-            );
+                (
+                    ｍoveToA,
+                    cc.CallFunc.create(this.groundCallback, groundsprite,this)
+                );
             groundsprite.runAction(Action);
             groundArray.push(groundsprite);
 
         }
-        birdDraw = cc.DrawNode.create();
-        this.addChild( birdDraw, 1 );
+
 
         space = new cp.Space();
-        this.initPhysics();
-        this.scheduleUpdate();
+
 
         birdPicName = s_Bird1;
-        birdSprite =  this.createPhysicsSprite( cc.p(screenSize.width / 5, screenSize.height / 1.2) ,this);
+        birdSprite =  this.createPhysicsSprite( cc.p(screenSize.width / 2-45, screenSize.height / 2-24) ,this);
         this.addChild( birdSprite );
 
 
+        var startItem = cc.MenuItemImage.create
+        (
+            s_tutorial,
+            s_tutorial,
+            function ()
+            {
+                startItem.removeFromParentAndCleanup(true);
+                this.startGame();
+            },
+            this
+        );
+
+        var menu = cc.Menu.create(startItem);
+        menu.setPosition(0,0);
+        this.addChild(menu, 1);
+        startItem.setPosition(screenSize.width / 2, screenSize.height / 2);
+
+        var soapScoreSprite = cc.Sprite.create(s_soap);
+        soapScoreSprite.setPosition(screenSize.width / 10, screenSize.height / 1.1);
+        lazyLayer.addChild(soapScoreSprite, 5);
+
+
+        soapScoreLabel = cc.LabelTTF.create(soapScoreNum.toString(), "Arial", 30);
+        soapScoreLabel.setPosition(screenSize.width / 6, screenSize.height / 1.1);
+        lazyLayer.addChild(soapScoreLabel, 5);
+
+        return true;
+    },
+    startGame:function()
+    {
+        this.initPhysics();
+        this.scheduleUpdate();
         this.schedule(this.createTube, s_createTubeTime);
 
         this.schedule(this.changeSpriteFrame, s_sparkSpeed);
-
-        return true;
     },
     groundCallback: function (groundsprite,self)
     {
@@ -104,115 +129,76 @@ var Game = cc.Layer.extend({
     {
         var topSprite = cc.Sprite.create(s_PipeTop);
         topSprite.setAnchorPoint(1.0,1.0);
-        topSprite.setPosition(screenSize.width, screenSize.height);
         lazyLayer.addChild(topSprite, 0);
-
-        var topMoveToA = cc.MoveTo.create(s_tubeSpeed,cc.p(0,topSprite.getPositionY()));
-        var topDraw = cc.DrawNode.create();
-        var topAction = cc.Sequence.create(
-            topMoveToA,
-            cc.CallFunc.create(this.topCallback, topSprite,topDraw)
-        );
-        topSprite.runAction(topAction);
-        tubeArray.push(topSprite);
-
-
-        this.addChild( topDraw, 1 );
-        var topBox = topSprite.getBoundingBox();
-        var topPoints = [ cc.p(topBox.x,topBox.y), cc.p(topBox.x+topBox.width,topBox.y), cc.p(topBox.x+topBox.width,topBox.y+topBox.height), cc.p(topBox.x,topBox.y+topBox.height) ];
-        topDraw.drawPoly(topPoints, cc.c4f(1,0,0,0.0), 1, cc.c4f(0,0,1,1) );
-        drawArray.push(topDraw);
-
-
 
 
         var bottomSprite = cc.Sprite.create(s_PipeBottom);
         bottomSprite.setAnchorPoint(1.0,0.0);
-        bottomSprite.setPosition(screenSize.width, groundSize.height);
         lazyLayer.addChild(bottomSprite, 0);
 
+
+        var soapSprite = cc.Sprite.create(s_soap);
+        this.addChild(soapSprite,100);
+
+        var aNum = Math.floor(Math.random()*3);
+
+        switch(aNum)
+        {
+            case 0:
+                topSprite.setPosition(screenSize.width, screenSize.height+screenSize.height/2);
+                bottomSprite.setPosition(screenSize.width, -screenSize.height/1.5);
+
+                soapSprite.setPosition(screenSize.width-20, screenSize.height/2);
+
+                break;
+            case 1:
+                topSprite.setPosition(screenSize.width, screenSize.height+screenSize.height/1.8);
+                bottomSprite.setPosition(screenSize.width, -screenSize.height/1.8);
+
+                soapSprite.setPosition(screenSize.width-20, screenSize.height/1.8);
+
+                break;
+            case 2:
+                topSprite.setPosition(screenSize.width, screenSize.height+screenSize.height/1.2);
+                bottomSprite.setPosition(screenSize.width, -screenSize.height/3);
+                soapSprite.setPosition(screenSize.width-20, screenSize.height/1.2);
+
+                break;
+            default:
+
+                break;
+        }
+
+
+
+        var topMoveToA = cc.MoveTo.create(s_tubeSpeed,cc.p(0,topSprite.getPositionY()));
+
+        var topAction = cc.Sequence.create(
+            topMoveToA,
+            cc.CallFunc.create(this.topCallback, topSprite)
+        );
+        topSprite.runAction(topAction);
+        tubeArray.push(topSprite);
+
         var bottomMoveToA = cc.MoveTo.create(s_tubeSpeed,cc.p(0,bottomSprite.getPositionY()));
-        var bottomDraw = cc.DrawNode.create();
         var bottomAction = cc.Sequence.create(
             bottomMoveToA,
-            cc.CallFunc.create(this.bottomCallback, bottomSprite,bottomDraw)
+            cc.CallFunc.create(this.bottomCallback, bottomSprite)
         );
 
         bottomSprite.runAction(bottomAction);
         tubeArray.push(bottomSprite);
-/*
-        var topRandomNum = 1.2+Math.random();
-        var topScaleByA = cc.ScaleBy.create(s_tubeSpeed,cc.p(0,topSprite.getPositionY()));
-        var topScaleAction = cc.Sequence.create(
-            topScaleToA,
-            cc.CallFunc.create(this.topCallback, topSprite)
+
+
+        var soapMoveToA = cc.MoveTo.create(s_tubeSpeed,cc.p(0,soapSprite.getPositionY()));
+        var soapAction = cc.Sequence.create(
+            soapMoveToA,
+            cc.CallFunc.create(this.soapCallback, soapSprite)
         );
-        topSprite.runAction(topScaleAction);
-*/
 
+        soapSprite.runAction(soapAction);
+        soapArray.push(soapSprite);
 
-        this.addChild( bottomDraw, 1 );
-        var bottomBox = topSprite.getBoundingBox();
-        var bottompoints = [ cc.p(bottomBox.x,bottomBox.y), cc.p(bottomBox.x+bottomBox.width,bottomBox.y), cc.p(bottomBox.x+bottomBox.width,bottomBox.y+bottomBox.height), cc.p(bottomBox.x,bottomBox.y+bottomBox.height) ];
-        bottomDraw.drawPoly(bottompoints, cc.c4f(1,0,0,0.0), 1, cc.c4f(0,0,1,1) );
-        drawArray.push(bottomDraw);
-
-
-
-
-        var boolNum = Math.floor(Math.random()*2);
-        //cc.log("boolNum="+boolNum);
-
-        if(0==boolNum)
-        {
-            var topRandomNum = Math.floor(Math.random()*2)+2;
-
-            if(3 == topRandomNum)
-            {
-                topSprite.setScaleY(2.5);
-            }
-            else
-            {
-                topSprite.setScaleY(topRandomNum);
-            }
-            //cc.log("topRandomNum="+topRandomNum);
-
-        }
-        else
-        {
-            var bottomRandomNum = Math.floor(Math.random()*2)+2;
-            if(3 == bottomRandomNum)
-            {
-                bottomSprite.setScaleY(2.5);
-            }
-            else
-            {
-                bottomSprite.setScaleY(bottomRandomNum);
-            }
-            //cc.log("bottomRandomNum="+bottomRandomNum);
-        }
-
-/*
-        var topHeight= topSprite.getBoundingBox().height;
-        var bottomHeight= bottomSprite.getBoundingBox().height;
-
-        var topRandomNum = Math.floor(Math.random()*1.2)+Math.random(); //该方法产生一个0到1之间的浮点数。
-        var bottomRandomNum = Math.floor(Math.random()*1.2)+Math.random();
-
-        while(true)
-        {
-            var spaceHeight = screenSize.height-topHeight*topRandomNum+bottomHeight*bottomRandomNum;
-            //if(spaceHeight>screenSize.height/8 && spaceHeight<screenSize.height/6)
-            if(spaceHeight>birdSize.height*2 && spaceHeight<birdSize.height*4)
-            {
-                topSprite.setScaleY(topRandomNum);
-                bottomSprite.setScaleY(bottomRandomNum);
-                break;
-            }
-        }
-        alert("finish");
-
-        */
     },
 
     initPhysics:function()
@@ -229,7 +215,7 @@ var Game = cc.Layer.extend({
             var shape = walls[i];
             if(0 == i)
             {
-                shape.setElasticity(2.0);
+                shape.setElasticity(0.0);
             }
             else
             {
@@ -269,14 +255,6 @@ var Game = cc.Layer.extend({
         {
             var element = tubeArray[i];
 
-            /******   tempDraw  code ******/
-            var draw = drawArray[i];
-            draw.clear();
-            var Box = element.getBoundingBox();
-            var Points = [ cc.p(Box.x,Box.y), cc.p(Box.x+Box.width,Box.y), cc.p(Box.x+Box.width,Box.y+Box.height), cc.p(Box.x,Box.y+Box.height) ];
-            draw.drawPoly(Points, cc.c4f(1,0,0,0.0), 1, cc.c4f(0,0,1,1) );
-
-            /******   tempDraw  code ******/
 
             if(cc.rectIntersectsRect(birdBox,element.getBoundingBox()) && !isGameOver)
             {
@@ -287,39 +265,44 @@ var Game = cc.Layer.extend({
                 nextScene.addChild(nextLayer);
                 cc.Director.getInstance().replaceScene(cc.TransitionSlideInT.create(0.0, nextScene));
                 */
-                GameOver();
-                var shape = walls[0];
-                //shape.setElasticity(0.0);
-                //birdbody.setPosition(birdbody.getPositionX(),groundSize.height);
+               // GameOver();
+            }
+        }
+        for(var i =0;i<soapArray.length;i++)
+        {
+            var element = soapArray[i];
+
+
+            if(cc.rectIntersectsRect(birdBox,element.getBoundingBox()) && !isGameOver)
+            {
+                soapArray.shift();
+                element.removeFromParentAndCleanup(true);
+                soapScoreNum++;
+                soapScoreLabel.setString(soapScoreNum.toString());
             }
         }
 
         if(birdSprite.getPosition().y-birdSize.height/2<groundSize.height)
         {
-            //GameOver();
+          //  GameOver();
         }
-             /******   tempDraw  code ******/
-             birdDraw.clear();
 
-             var birdPoints = [ cc.p(birdBox.x,birdBox.y), cc.p(birdBox.x+birdBox.width,birdBox.y), cc.p(birdBox.x+birdBox.width,birdBox.y+birdBox.height), cc.p(birdBox.x,birdBox.y+birdBox.height) ];
-             birdDraw.drawPoly(birdPoints, cc.c4f(1,0,0,0.0), 1, cc.c4f(0,0,1,1) );
-             /******   tempDraw  code ******/
     },
-    topCallback:function(topSprite,topDraw)
+    topCallback:function(topSprite)
     {
         topSprite.removeFromParent(true);
-        topDraw.clear();
         tubeArray.shift();
-        drawArray.shift();
     },
-    bottomCallback:function(bottomSprite,bottomDraw)
+    bottomCallback:function(bottomSprite)
     {
         bottomSprite.removeFromParent(true);
-        bottomDraw.clear();
         tubeArray.shift();
-        drawArray.shift();
     },
-
+    soapCallback:function(soapSprite)
+    {
+        soapSprite.removeFromParent(true);
+        soapArray.shift();
+    },
     onTouchesBegan:function (touches, event) {
         this.isMouseDown = true;
         if(isGameOver)
@@ -365,6 +348,12 @@ var GameOver = function()
     {
         groundArray[i].stopAllActions();
     }
+    for(var i =0;i<soapArray.length;i++)
+    {
+        soapArray[i].stopAllActions();
+    }
+    var shape = walls[0];
+    shape.setElasticity(2.0);
 }
 
 
