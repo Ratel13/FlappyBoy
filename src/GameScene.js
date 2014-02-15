@@ -283,6 +283,7 @@ var Game = cc.Layer.extend({
                 );
                 element.runAction(Action);
                   */
+                cc.AudioEngine.getInstance().playEffect("res/sfx_point.mp3");
                 soapArray.shift();
                 this.getSoapCallback(element);
                 soapScoreNum++;
@@ -320,7 +321,7 @@ var Game = cc.Layer.extend({
         this.isMouseDown = true;
         if(isGameOver)
         return;
-                           
+        cc.AudioEngine.getInstance().playEffect("res/sfx_wing.mp3")
         birdbody.applyImpulse(cp.v(0,400), cp.v(0,0));
     },
     onTouchesMoved:function (touches, event) {
@@ -349,6 +350,8 @@ var GameOver = function()
      */
     isGameOver =true;
     //cc.ActionManager.getInstance().pauseAllRunningActions();
+
+    cc.AudioEngine.getInstance().playEffect("res/sfx_hit.mp3");
 
     self.unschedule(self.createTube);
     self.unschedule(self.changeSpriteFrame);
